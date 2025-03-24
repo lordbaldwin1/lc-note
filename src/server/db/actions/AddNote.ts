@@ -5,14 +5,14 @@ import { revalidatePath } from "next/cache";
 import { addNote as addNoteToDb } from "../queries";
 import type { DifficultyLevel } from "../schema";
 
-export async function addNoteAction(problem: string, solution: string, difficulty: DifficultyLevel) {
+export async function addNoteAction(problem: string, solution: string, lcUrl: string, difficulty: DifficultyLevel) {
   const { userId } = await auth();
 
   if (!userId) {
     throw new Error("Unauthorized");
   }
 
-  const note = await addNoteToDb(userId, problem, solution, difficulty);
+  const note = await addNoteToDb(userId, problem, solution, lcUrl, difficulty);
 
   if (!note.success) {
     return { success: false, error: note.error };

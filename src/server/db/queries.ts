@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, like } from "drizzle-orm";
 import { db } from "~/server/db";
-import { notes, type DifficultyLevel } from "~/server/db/schema";
+import { notes, problems, type DifficultyLevel } from "~/server/db/schema";
 
 export async function getNotes(userId: string) {
   try {
@@ -19,6 +19,7 @@ export async function addNote(
   userId: string,
   problem: string,
   solution: string,
+  lcUrl: string,
   difficulty: DifficultyLevel,
 ) {
   try {
@@ -26,6 +27,7 @@ export async function addNote(
       userId,
       title: problem,
       content: solution,
+      url: lcUrl,
       difficulty: difficulty,
     });
     return { result, success: true };
@@ -60,10 +62,26 @@ export async function updateNote(
 
 export async function deleteNote(id: number, userId: string) {
   try {
-    const result = await db.delete(notes).where(and(eq(notes.id, id), eq(notes.userId, userId)));
+    const result = await db
+      .delete(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)));
     return { result, success: true };
   } catch (error) {
     console.error(error);
     return { error: "Failed to delete note", success: false };
+  }
+}
+
+export async function searchProblems(query: string) {
+  try {
+    const result = await db
+      .select()
+      .from(problems)
+      .where(like(problems.title, `%${query}%`))
+      .limit(10);
+    return result;
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 }
