@@ -44,6 +44,7 @@ export default function NoteRow(props: { notes: Note[] }) {
     problem: "",
     solution: "",
     difficulty: "Easy",
+    lcUrl: "",
   });
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editedProblem, setEditedProblem] = useState("");
@@ -112,6 +113,7 @@ export default function NoteRow(props: { notes: Note[] }) {
     const result = await addNoteAction(
       noteToAdd.problem,
       noteToAdd.solution,
+      noteToAdd.lcUrl,
       noteToAdd.difficulty as DifficultyLevel,
     );
 
@@ -119,7 +121,7 @@ export default function NoteRow(props: { notes: Note[] }) {
       console.error(result.error);
     }
 
-    setNoteToAdd({ problem: "", solution: "", difficulty: "Easy" });
+    setNoteToAdd({ problem: "", solution: "", difficulty: "Easy", lcUrl: "" });
   };
 
   const handleInputBlur = (note: {
