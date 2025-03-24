@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { searchProblems } from "~/server/db/queries";
 
 export async function GET(request: NextRequest) {

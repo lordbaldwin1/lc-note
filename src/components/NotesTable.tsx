@@ -25,7 +25,7 @@ import { addNoteAction } from "~/server/db/actions/AddNote";
 import { toast } from "sonner";
 import { updateNoteAction } from "~/server/db/actions/UpdateNote";
 import { deleteNoteAction } from "~/server/db/actions/DeleteNote";
-import { Link, Link2, Trash2Icon } from "lucide-react";
+import { Link2, Trash2Icon } from "lucide-react";
 
 export default function NoteRow(props: { notes: Note[] }) {
   const { notes } = props;

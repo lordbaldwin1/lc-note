@@ -9,7 +9,7 @@ export const deleteNoteAction = async (id: number) => {
     return { error: "Unauthorized", success: false };
   }
   try {
-    const result = await deleteNote(id, userId);
+    await deleteNote(id, userId);
     revalidatePath("/");
     return { success: true };
   } catch (error) {
