@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Input } from "~/components/ui/input";
-import { addNoteAction } from "~/server/db/actions/AddNote";
 import { toast } from "sonner";
 import { updateNoteAction } from "~/server/db/actions/UpdateNote";
 import { deleteNoteAction } from "~/server/db/actions/DeleteNote";
@@ -29,12 +28,6 @@ import { Link2, Trash2Icon } from "lucide-react";
 
 export default function NoteRow(props: { notes: Note[] }) {
   const { notes } = props;
-  const [noteToAdd, setNoteToAdd] = useState({
-    problem: "",
-    solution: "",
-    lcUrl: "",
-    difficulty: "Easy",
-  });
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [editedProblem, setEditedProblem] = useState("");
   const [editedSolution, setEditedSolution] = useState("");
@@ -70,7 +63,7 @@ export default function NoteRow(props: { notes: Note[] }) {
       );
 
       if (!result.success) {
-        toast.error(result.error || "Failed to update note");
+        toast.error(result.error ?? "Failed to update note");
         return;
       }
 
@@ -88,29 +81,10 @@ export default function NoteRow(props: { notes: Note[] }) {
   ) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSaveEdit(id);
+      void handleSaveEdit(id);
     } else if (e.key === "Escape") {
       setEditingNoteId(null);
     }
-  };
-
-  const handleAddNote = async () => {
-    if (noteToAdd.problem.trim() === "" && noteToAdd.solution.trim() === "") {
-      toast.error("Please enter a problem and solution");
-      return;
-    }
-    const result = await addNoteAction(
-      noteToAdd.problem,
-      noteToAdd.solution,
-      noteToAdd.lcUrl,
-      noteToAdd.difficulty as DifficultyLevel,
-    );
-
-    if (!result.success) {
-      console.error(result.error);
-    }
-
-    setNoteToAdd({ problem: "", solution: "", lcUrl: "", difficulty: "Easy" });
   };
 
   const handleInputBlur = (note: {
@@ -132,7 +106,7 @@ export default function NoteRow(props: { notes: Note[] }) {
           note.difficulty !== editedDifficulty;
 
         if (isNoteDifferent) {
-          handleSaveEdit(note.id);
+          void handleSaveEdit(note.id);
         } else {
           setEditingNoteId(null);
         }
@@ -141,13 +115,18 @@ export default function NoteRow(props: { notes: Note[] }) {
   };
 
   const handleDelete = async (id: number) => {
-    const result = await deleteNoteAction(id);
+    try {
+      const result = await deleteNoteAction(id);
 
-    if (!result.success) {
-      toast.error(result.error || "Failed to delete note");
-      return;
-    } else {
+      if (!result.success) {
+        toast.error(result.error ?? "Failed to delete note");
+        return;
+      }
+      
       toast.success("Note deleted successfully");
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error("An unexpected error occurred while deleting");
     }
   };
 
@@ -298,7 +277,9 @@ export default function NoteRow(props: { notes: Note[] }) {
                     variant="destructive" 
                     size="sm" 
                     className="h-8 w-8 p-0 cursor-pointer" 
-                    onClick={() => handleDelete(note.id)}
+                    onClick={() => {
+                      void handleDelete(note.id);
+                    }}
                   >
                     <Trash2Icon className="h-4 w-4" />
                   </Button>

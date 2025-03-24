@@ -7,7 +7,7 @@ import type { DifficultyLevel } from "../schema";
 
 export async function updateNoteAction(id: number, problem: string, solution: string, difficulty: DifficultyLevel) {
   try {
-    const result = await updateNote(id, problem, solution, difficulty);
+    await updateNote(id, problem, solution, difficulty);
     revalidatePath("/notes");
     return { success: true };
   } catch (error) {

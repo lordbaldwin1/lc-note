@@ -67,9 +67,22 @@ export default function AddNote() {
       setShowNoResults(false);
       try {
         const response = await fetch(
-          `/api/search?query=${debouncedSearchQuery}`,
+          `/api/search?query=${encodeURIComponent(debouncedSearchQuery)}`,
         );
-        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(`Search failed with status: ${response.status}`);
+        }
+
+        type ProblemResult = {
+          id: number;
+          title: string;
+          difficulty: "Easy" | "Medium" | "Hard";
+          url: string;
+          free: number;
+        }[];
+
+        const data = (await response.json()) as ProblemResult;
         setSuggestions(data);
 
         setTimeout(() => {
@@ -83,7 +96,7 @@ export default function AddNote() {
       }
     };
 
-    fetchResults();
+    void fetchResults();
   }, [debouncedSearchQuery]);
 
   const handleSuggestionSelect = (suggestion: {
@@ -108,20 +121,35 @@ export default function AddNote() {
       toast.error("Please enter a problem and solution");
       return;
     }
-    const result = await addNoteAction(
-      noteToAdd.problem,
-      noteToAdd.solution,
-      noteToAdd.lcUrl,
-      noteToAdd.difficulty as DifficultyLevel,
-    );
 
-    if (!result.success) {
-      console.error(result.error);
-      return;
+    try {
+      const result = await addNoteAction(
+        noteToAdd.problem,
+        noteToAdd.solution,
+        noteToAdd.lcUrl,
+        noteToAdd.difficulty as DifficultyLevel,
+      );
+
+      if (!result.success) {
+        console.error(result.error);
+        toast.error(result.error ?? "Failed to add note");
+        return;
+      }
+
+      toast.success("Note added successfully");
+      setNoteToAdd({
+        problem: "",
+        solution: "",
+        lcUrl: "",
+        difficulty: "Easy",
+      });
+
+      // Close dialog after successful addition
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding note:", error);
+      toast.error("An unexpected error occurred");
     }
-    toast.success("Note added successfully");
-
-    setNoteToAdd({ problem: "", solution: "", lcUrl: "", difficulty: "Easy" });
   };
 
   // Reset state when dialog is closed
@@ -130,7 +158,12 @@ export default function AddNote() {
     if (!open) {
       // Weird visual if I don't add timeout before resetting state
       setTimeout(() => {
-        setNoteToAdd({ problem: "", solution: "", lcUrl: "", difficulty: "Easy" });
+        setNoteToAdd({
+          problem: "",
+          solution: "",
+          lcUrl: "",
+          difficulty: "Easy",
+        });
         setActiveTab("search");
         setSearchQuery("");
         setSuggestions([]);
@@ -265,6 +298,7 @@ export default function AddNote() {
                             url: suggestion.url,
                           });
                         }}
+                        className="flex items-center justify-between"
                       >
                         {suggestion.title}
                       </CommandItem>
